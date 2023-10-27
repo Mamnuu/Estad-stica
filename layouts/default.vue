@@ -10,7 +10,7 @@
           prepend-icon="mdi-home"
           title="Inicio"
           value="inicio"
-          to="/index"
+          to="/"
         ></v-list-item>
         <v-list-item
           prepend-icon="mdi-alpha-m-box-outline"
@@ -22,11 +22,13 @@
           prepend-icon="mdi-percent"
           title="Proporción"
           value="proporcion"
+          to="/proporcion"
         ></v-list-item>
         <v-list-item
           prepend-icon="mdi-sigma-lower"
           title="Varianza"
           value="varianza"
+          to="/varianza"
         ></v-list-item>
       </v-list>
     </v-navigation-drawer>

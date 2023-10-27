@@ -7,7 +7,9 @@
       max-width="448"
       rounded="lg"
     >
-      <v-card-title style="text-align: center">Intervalo de confianza para la media</v-card-title>
+      <v-card-title style="text-align: center"
+        >Intervalo de confianza para la media</v-card-title
+      >
       <div class="text-subtitle-1 text-medium-emphasis">Tipo de media</div>
 
       <v-select
@@ -53,6 +55,18 @@
         variant="underlined"
         :rules="[Rules, numeroRules].flat()"
       ></v-text-field>
+      <div class="text-subtitle-1 text-medium-emphasis">
+        Tamaño de la muestra
+      </div>
+
+      <v-text-field
+        v-model="muestra"
+        density="compact"
+        placeholder="Tamaño de la muestra"
+        prepend-inner-icon="mdi-abacus"
+        variant="underlined"
+        :rules="[Rules, numeroRules].flat()"
+      ></v-text-field>
 
       <v-btn
         block
@@ -79,6 +93,7 @@ export default {
       ],
       media: "",
       desviacion: "",
+      muestra:"",
       tipo: "Seleccionar",
       items: [
         "Población normal, varianza conocida",
@@ -92,13 +107,13 @@ export default {
   },
   methods: {
     async calcular() {
-
       // Validación campos vacíos
       if (
         this.media == "" ||
         this.desviacion == "" ||
         this.tipo == "Seleccionar" ||
-        this.confianza == "Seleccionar" 
+        this.muestra == "Seleccionar" ||
+        this.confianza == "Seleccionar"
       ) {
         errorMessage.value = "Por favor, ingresa todos los campos.";
         Swal.fire({
@@ -119,7 +134,7 @@ export default {
         });
         return;
       }
-      if (!/^[0-9]+|[()\.]+/.test(this.media)) {
+      if (!/^[0-9]+|[()\.]+/.test(this.muestra)) {
         errorMessage.value = "Solo se permiten números";
         Swal.fire({
           icon: "error",
@@ -136,8 +151,7 @@ export default {
           text: errorMessage.value,
         });
         return;
-      }
-      else {
+      } else {
       }
     },
   },
