@@ -1,162 +1,147 @@
 <template>
   <v-container class="container-p">
     <br />
-    <v-card
-      class="mx-auto pa-4 pb-2"
-      elevation="20"
-      max-width="448"
-      rounded="lg"
-    >
-      <v-card-title style="text-align: center"
-        >Intervalo de confianza para la media</v-card-title
-      >
-      <div class="text-subtitle-1 text-medium-emphasis">Tipo de media</div>
+    <v-card class="mx-auto pa-4 pb-2" elevation="20" max-width="448" rounded="lg">
+      <v-card-title style="text-align: center">Intervalo de confianza para la media</v-card-title>
 
-      <v-select
-        v-model="tipo"
-        density="compact"
-        placeholder="Tipo de media"
-        prepend-inner-icon="mdi-alpha-m-box-outline"
-        :items="items"
-        variant="underlined"
-      ></v-select>
-      <div class="text-subtitle-1 text-medium-emphasis">Confianza</div>
-      <v-select
-        v-model="confianza"
-        density="compact"
-        placeholder="Porcentaje de confianza"
-        prepend-inner-icon="mdi-percent"
-        :items="items2"
-        variant="underlined"
-      ></v-select>
-
-      <div class="text-subtitle-1 text-medium-emphasis">
-        Valor de la media muestral
+      <div class="condicion">
+        <div class="text-subtitle-1 text-medium-emphasis">Condición</div>
+        <v-select v-model="condicion" density="compact" placeholder="Condición"
+          prepend-inner-icon="mdi-alpha-m-box-outline" :items="condiciones" variant="underlined"></v-select>
       </div>
 
-      <v-text-field
-        v-model="media"
-        density="compact"
-        placeholder="Valor de la media"
-        prepend-inner-icon="mdi-sigma"
-        variant="underlined"
-        :rules="[Rules, numeroRules].flat()"
-      ></v-text-field>
-
-      <div class="text-subtitle-1 text-medium-emphasis">
-        Valor de la desviación estándar
+      <div class="confianza">
+        <div class="text-subtitle-1 text-medium-emphasis">Confianza</div>
+        <v-select v-model="confianza" density="compact" placeholder="Porcentaje de confianza"
+          prepend-inner-icon="mdi-percent" :items="confianzas" variant="underlined"></v-select>
       </div>
 
-      <v-text-field
-        v-model="desviacion"
-        density="compact"
-        placeholder="Valor desviación"
-        prepend-inner-icon="mdi-chart-scatter-plot"
-        variant="underlined"
-        :rules="[Rules, numeroRules].flat()"
-      ></v-text-field>
+      <div class="media">
+        <div class="text-subtitle-1 text-medium-emphasis">
+          Media muestral
+        </div>
+        <v-text-field type="number" min="0" v-model="media" density="compact" placeholder="Valor de la media muestral"
+          prepend-inner-icon="mdi-sigma" variant="underlined" :rules="[Rules, numeroRules].flat()"></v-text-field>
+      </div>
+
+      <v-expand-transition>
+        <div class="desviacion-muestral" v-show="!varianzaConocida">
+          <div class="text-subtitle-1 text-medium-emphasis">
+            Desviación muestral
+          </div>
+          <v-text-field type="number" min="0" v-model="desviacionMuestral" density="compact"
+            placeholder="Valor de la desviación muestral" prepend-inner-icon="mdi-chart-scatter-plot" variant="underlined"
+            :rules="[Rules, numeroRules].flat()"></v-text-field>
+        </div>
+      </v-expand-transition>
+
+      <v-expand-transition>
+        <div class="desviacion-poblacional" v-show="varianzaConocida">
+          <div class="text-subtitle-1 text-medium-emphasis">
+            Desviación poblacional
+          </div>
+          <v-text-field type="number" min="0" v-model="desviacionPoblacional" density="compact"
+            placeholder="Valor de la desviación poblacional" prepend-inner-icon="mdi-chart-scatter-plot"
+            variant="underlined" :rules="[Rules, numeroRules].flat()"></v-text-field>
+        </div>
+      </v-expand-transition>
+
       <div class="text-subtitle-1 text-medium-emphasis">
         Tamaño de la muestra
       </div>
+      <v-text-field type="number" min="0" v-model="muestra" density="compact" placeholder="Tamaño de la muestra"
+        prepend-inner-icon="mdi-abacus" variant="underlined" :rules="[Rules, numeroRules].flat()"></v-text-field>
 
-      <v-text-field
-        v-model="muestra"
-        density="compact"
-        placeholder="Tamaño de la muestra"
-        prepend-inner-icon="mdi-abacus"
-        variant="underlined"
-        :rules="[Rules, numeroRules].flat()"
-      ></v-text-field>
-
-      <v-btn
-        block
-        class="mb-6"
-        style="color: azure; variant: outline; background-color: #765d39"
-        color="#765D39"
-        size="large"
-        @click="calcular"
-      >
+      <v-btn block class="mb-2" style="color: azure; variant: outline; background-color: #765d39" color="#765D39"
+        size="large" @click="calcular">
         Calcular
+      </v-btn>
+
+      <v-btn block class="mb-6" style="color: azure; variant: outline; background-color: #5D6D7E" color="#5D6D7E"
+        size="large" @click="limpiar">
+        Limpiar
       </v-btn>
     </v-card>
   </v-container>
 </template>
-<script>
-import Swal from "sweetalert2";
-const errorMessage = ref("");
-export default {
-  data: () => {
-    return {
-      Rules: [(v) => !!v || "El campo es obligatorio"],
-      numeroRules: [
-        (v) => /^[0-9]+|[()\.]+/.test(v) || "Solo se permiten números",
-      ],
-      media: "",
-      desviacion: "",
-      muestra:"",
-      tipo: "Seleccionar",
-      items: [
-        "Población normal, varianza conocida",
-        "Población normal, varianza desconocida y n<30",
-        "Población cualquiera, varianza desconocida y n>=29",
-        "Población cualquiera, varianza conocida y n>=30",
-      ],
-      confianza: "Seleccionar",
-      items2: ["90%", "95%", "99%"],
-    };
-  },
-  methods: {
-    async calcular() {
-      // Validación campos vacíos
-      if (
-        this.media == "" ||
-        this.desviacion == "" ||
-        this.tipo == "Seleccionar" ||
-        this.muestra == "Seleccionar" ||
-        this.confianza == "Seleccionar"
-      ) {
-        errorMessage.value = "Por favor, ingresa todos los campos.";
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: errorMessage.value,
-        });
-        return;
-      }
 
-      // Validación de solo números
-      if (!/^[0-9]+|[()\.]+/.test(this.media)) {
-        errorMessage.value = "Solo se permiten números";
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: errorMessage.value,
-        });
-        return;
-      }
-      if (!/^[0-9]+|[()\.]+/.test(this.muestra)) {
-        errorMessage.value = "Solo se permiten números";
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: errorMessage.value,
-        });
-        return;
-      }
-      if (!/^[0-9]+|[()\.]+/.test(this.desviacion)) {
-        errorMessage.value = "Solo se permiten números";
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: errorMessage.value,
-        });
-        return;
-      } else {
-      }
-    },
-  },
-};
+
+<script setup>
+import { intervalsService } from '../services/intervalsService';
+import { utilsService } from '../services/utilsService';
+import { alertService } from '../services/alertService';
+
+const errorMessage = ref("");
+const Rules = [(v) => !!v || "El campo es obligatorio"];
+const numeroRules = [
+  (v) => utilsService.isNumber(v) || "Solo se permiten números",
+];
+
+const condicion = ref(null);
+const condiciones = [
+  { title: "Seleccionar...", value: null },
+  { title: "Población normal y varianza conocida", value: 1 },
+  { title: "Población normal, varianza desconocida y n<30", value: 2 },
+  { title: "Población cualquiera, varianza desconocida y n≥30", value: 3 },
+  { title: "Población cualquiera, varianza conocida y n≥30", value: 4 },
+];
+const confianza = ref(null);
+const confianzas = [
+  { title: "Seleccionar...", value: null },
+  { title: "90%", value: 0.90 },
+  { title: "95%", value: 0.95 },
+  { title: "99%", value: 0.99 },
+];
+const media = ref("");
+const varianzaConocida = computed(() => {
+  return condicion.value == 1 || condicion.value == 4;
+});
+const desviacionMuestral = ref(null);
+const desviacionPoblacional = ref(null);
+const muestra = ref(null);
+const camposCompletos = computed(() => {
+  return (
+    condicion.value &&
+    confianza.value &&
+    media.value &&
+    ((!varianzaConocida.value && desviacionMuestral.value) || (varianzaConocida.value && desviacionPoblacional.value)) &&
+    muestra.value
+  );
+});
+
+const calcular = async () => {
+  if (camposCompletos.value) {
+    if (condicion.value == 1) {
+      const { L, U } = intervalsService.media.poblacionNormalVarianzaConocida(
+        media.value,
+        1 - confianza.value,
+        desviacionPoblacional.value,
+        muestra.value
+      );
+      alertService.informative(
+        "Resultado",
+        `Con una confianza del ${confianza.value * 100}%, se espera que la media poblacional esté entre ${L} y ${U}.`
+      );
+    }
+  } else {
+    alertService.warning(
+      "Advertencia",
+      "Por favor, ingrese todos los datos solicitados para realizar el cálculo del intervalo."
+    );
+  }
+}
+
+const limpiar = () => {
+  condicion.value = null;
+  confianza.value = null;
+  media.value = null;
+  desviacionMuestral.value = null;
+  desviacionPoblacional.value = null;
+  muestra.value = null;
+}
 </script>
+
+
 <style>
 .titulo {
   font-family: sans-serif !important;
